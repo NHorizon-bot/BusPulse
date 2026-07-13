@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  # 全局请求诊断超时（毫秒），包含工具扇出 + LLM 推理全链路
+  diagnose_timeout_ms: 30000
+
+tool_dispatcher:
+  # 工具扇出层专属超时（毫秒），必须小于 diagnose_timeout_ms
+  fan_out_timeout_ms: 1500
+  # 各工具个人超时预算（毫秒）
+  tool_timeouts:
+    get_order_context:   500
+    get_vehicle_gps:     800
+    get_algo_snapshot:   1200
+    get_trace_log:       1000
+    get_geo_fence:       600
+    get_station_flow:    600
+    get_map_route:       1000
+    get_eta_snapshot:    800
+
+llm:
+  # provider: deepseek（默认）| qwen
+  provider:       "deepseek"
+  # endpoint 默认值：DeepSeek="https://api.deepseek.com/v1", Qwen="https://dashscope.aliyuncs.com/compatible-mode/v1"
+  endpoint:       "https://api.deepseek.com/v1"
+  # api_key 在 config.local.yaml 中覆盖，不提交到仓库
+  api_key:        ""
+  model:          "deepseek-chat"
+  temperature:    0.1
+  max_tokens:     32768
+  # ReAct 最大推理轮次，超过后强制输出已有结论
+  max_iterations: 4
+
+rule_engine:
+  # GPS 偏离距离阈值（米）
+  gps_deviation_threshold_m: 500
+  # GPS 偏离持续时间阈值（秒）
+  gps_deviation_duration_s:  180
+  # 在车乘客 ETA 延误保护阈值（分钟）
+  eta_protection_threshold_min: 15
+  # 方向冲突角度阈值（度）
+  heading_conflict_threshold_deg: 90
+  # 拥堵指数阈值（≥ 3.5 判定深红）
+  congestion_index_threshold: 3.5
+
+audit:
+  # 审计日志写入方式：file | mysql（MVP 阶段使用 file）
+  backend: "file"
+  file_path: "./logs/audit.jsonl"
+
+sanitizer:
+  # 工具返回摘要最大字节数，超出截断后送入 LLM
+  max_payload_bytes: 1024
